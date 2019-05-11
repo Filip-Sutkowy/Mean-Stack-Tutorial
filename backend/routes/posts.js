@@ -33,12 +33,12 @@ router.post(
 	checkAuth,
 	multer({storage: storage}).single("image"),
 	(req, res, next) => {
-		console.log("so far");
 	const url = req.protocol + '://' + req.get("host");
 	const post = new Post({
 		title: req.body.title,
 		content: req.body.content,
-		imagePath: url + "/images/" + req.file.filename
+		imagePath: url + "/images/" + req.file.filename,
+		creator: req.userData.userId
 	});
 	post.save().then(createdPost => {
 		res.status(201).json({
@@ -68,13 +68,16 @@ router.put(
 			_id: req.body.id,
 			title: req.body.title,
 			content: req.body.content,
-			imagePath: imagePath
+			imagePath: imagePath,
+			creator: req.userData.userId
 		});
-		console.log(post);
-		Post.updateOne({_id: req.params.id }, post)
+		Post.updateOne({_id: req.params.id, creator: req.userData.userId }, post)
 		.then(result => {
-			console.log("updated item id " + req.params.id);
-			res.status(200).json({message: "Update Successful"})
+			if(result.nModified > 0) {			
+				res.status(200).json({message: "Update Successful"})
+			} else {
+				res.status(401).json({message: "Not authorized!"});
+			}
 		});
 	}
 );
@@ -118,10 +121,13 @@ router.delete(
 	checkAuth,
 	(req, res, next) => {
 
-	Post.deleteOne({ _id: req.params.id })
+	Post.deleteOne({ _id: req.params.id, creator: req.userData.userId })
 	.then(result => {
-		console.log(result);
-		res.status(200).json({ message: "Post deleted!" });
+		if(result.n > 0) {			
+			res.status(200).json({message: "Deletion Successful"})
+		} else {
+			res.status(401).json({message: "Not authorized!"});
+		}
 	})
 	.catch(err => {
 		console.log("cannot remove " + err);
