@@ -2,16 +2,13 @@ const path = require("path");
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const fs = require("fs");
 
 const postsRoutes = require("./routes/posts");
 const userRoutes = require("./routes/user");
 
 const app = express();
 
-var config = JSON.parse(fs.readFileSync('backend/settings.json', 'utf-8'));
-
-mongoose.connect(config.DB, { useNewUrlParser: true })
+mongoose.connect("mongodb+srv://sosu:"+process.env.MONGO_ATLAS_PW+"@cluster0-i5lcg.mongodb.net/mean?retryWrites=true", { useNewUrlParser: true })
 	.then((db) => {
 		console.log('Connected to DB', db.connections[0].host);
 	})
